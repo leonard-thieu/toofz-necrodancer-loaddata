@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("toofz.NecroDancer.Web.LoadData")]
-[assembly: AssemblyProduct("toofz.NecroDancer.Web.LoadData")]
+[assembly: AssemblyTitle("toofz.NecroDancer.LoadData")]
+[assembly: AssemblyProduct("toofz.NecroDancer.LoadData")]
 [assembly: ComVisible(false)]
 [assembly: Guid("3cc43dc3-cb00-4ebc-bc87-cfe7440a3064")]
 [assembly: AssemblyVersion("2.0.0.0")]
