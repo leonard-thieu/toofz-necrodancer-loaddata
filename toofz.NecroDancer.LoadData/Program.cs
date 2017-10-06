@@ -1,21 +1,33 @@
-﻿using toofz.NecroDancer.Data;
-using toofz.NecroDancer.EntityFramework;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
+using toofz.NecroDancer.Data;
 
 namespace toofz.NecroDancer.LoadData
 {
     static class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            // TODO: This shouldn't be hardcoded.
-            var uri = @"S:\Applications\Steam\steamapps\common\Crypt of the NecroDancer\data\necrodancer.xml";
-            var data = NecroDancerDataSerializer.Read(uri);
+            if (args.Length != 1)
+                throw new ArgumentException("Invalid number of arguments.");
+
+            var serializer = new NecroDancerDataSerializer();
+            NecroDancerData data;
+            var path = args[0];
+            using (var fs = File.OpenRead(path))
+            {
+                data = serializer.Deserialize(fs);
+            }
 
             using (var db = new NecroDancerContext())
             {
-                db.Set<Item>().AddRange(data.Items);
-                db.Set<Enemy>().AddRange(data.Enemies);
-                db.SaveChanges();
+                await db.Database.ExecuteSqlCommandAsync("DELETE FROM [dbo].[Items];").ConfigureAwait(false);
+                await db.Database.ExecuteSqlCommandAsync("DELETE FROM [dbo].[Enemies];").ConfigureAwait(false);
+
+                db.Items.AddRange(data.Items);
+                db.Enemies.AddRange(data.Enemies);
+                await db.SaveChangesAsync().ConfigureAwait(false);
             }
         }
     }
