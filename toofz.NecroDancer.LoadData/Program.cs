@@ -1,13 +1,12 @@
 ﻿using System;
 using System.IO;
-using System.Threading.Tasks;
 using toofz.NecroDancer.Data;
 
 namespace toofz.NecroDancer.LoadData
 {
-    static class Program
+    internal static class Program
     {
-        static async Task Main(string[] args)
+        private static void Main(string[] args)
         {
             if (args.Length != 1)
                 throw new ArgumentException("Invalid number of arguments.");
@@ -21,13 +20,24 @@ namespace toofz.NecroDancer.LoadData
             }
 
             using (var db = new NecroDancerContext())
+            using (var transaction = db.Database.BeginTransaction())
             {
-                await db.Database.ExecuteSqlCommandAsync("DELETE FROM [dbo].[Items];").ConfigureAwait(false);
-                await db.Database.ExecuteSqlCommandAsync("DELETE FROM [dbo].[Enemies];").ConfigureAwait(false);
+                try
+                {
+                    db.Database.ExecuteSqlCommand("DELETE FROM [dbo].[Items];");
+                    db.Items.AddRange(data.Items);
 
-                db.Items.AddRange(data.Items);
-                db.Enemies.AddRange(data.Enemies);
-                await db.SaveChangesAsync().ConfigureAwait(false);
+                    db.Database.ExecuteSqlCommand("DELETE FROM [dbo].[Enemies];");
+                    db.Enemies.AddRange(data.Enemies);
+
+                    db.SaveChanges();
+                    transaction.Commit();
+                }
+                catch (Exception)
+                {
+                    transaction.Rollback();
+                    throw;
+                }
             }
         }
     }
